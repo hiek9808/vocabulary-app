@@ -16,33 +16,44 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.sumaqada.vocabulary.ui.theme.VocabularyTheme
 
 @Composable
-fun RemoveScreen() {
+fun RemoveScreen(
+    removeUiState: RemoveUiState = RemoveUiState.Loading,
+    onConfirmButtonClicked: () -> Unit = {},
+    onDismissRequest: () -> Unit = {},
+) {
 
-
-    AlertDialog(
-        onDismissRequest = {},
-        confirmButton = {
-            TextButton(onClick = {}) {
-                Text("Delete", color = MaterialTheme.colorScheme.error)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = {}) {
-                Text("Cancel")
-            }
-        },
-        title = {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(imageVector = Icons.Outlined.Warning, contentDescription = null)
-            }
-        },
-        text = {
-            Text("Delete ______ word?")
+    when (removeUiState) {
+        is RemoveUiState.Loading -> {}
+        is RemoveUiState.Success -> {
+            val word = removeUiState.word
+            AlertDialog(
+                onDismissRequest = onDismissRequest,
+                confirmButton = {
+                    TextButton(onClick = onConfirmButtonClicked) {
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onDismissRequest) {
+                        Text("Cancel")
+                    }
+                },
+                title = {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(imageVector = Icons.Outlined.Warning, contentDescription = null)
+                    }
+                },
+                text = {
+                    Text("Delete \"${word.word}\" word?")
+                }
+            )
         }
-    )
+        is RemoveUiState.Error -> {}
+    }
+
 }
 
 @Preview

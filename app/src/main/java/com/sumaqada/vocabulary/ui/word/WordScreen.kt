@@ -22,38 +22,67 @@ import androidx.compose.ui.unit.dp
 import com.sumaqada.vocabulary.ui.theme.VocabularyTheme
 
 @Composable
-fun WordScreen() {
+fun WordScreen(
+    wordUiState: WordUiState = WordUiState.Loading,
+    onDeleteButtonClicked: (Int) -> Unit = {},
+    onEditButtonClicked: (Int) -> Unit = {},
+    onFloatingActionButtonClicked: () -> Unit = {}
+) {
 
     Scaffold(
         bottomBar = {
-            BottomAppBar(
-                modifier = Modifier,
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+            if (wordUiState is WordUiState.Success) {
+                val word = wordUiState.word
+                BottomAppBar(
+                    modifier = Modifier,
+                    actions = {
+                        IconButton(onClick = {onDeleteButtonClicked(word.id)}) {
+                            Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+                        }
+                        IconButton(onClick = {onEditButtonClicked(word.id)}) {
+                            Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
+                        }
+                    },
+                    floatingActionButton = {
+                        FloatingActionButton(onClick = onFloatingActionButtonClicked) {
+                            Icon(imageVector = Icons.Outlined.Add, contentDescription = null)
+                        }
                     }
-                    IconButton(onClick = {}) {
-                        Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
-                    }
-                },
-                floatingActionButton = {
-                    FloatingActionButton(onClick = {}) {
-                        Icon(imageVector = Icons.Outlined.Add, contentDescription = null)
-                    }
-                }
-            )
+                )
+            }
+
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
 
-            Text(text = "Word", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(text = "Translated", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            Text(text = "Description", style = MaterialTheme.typography.bodyLarge )
+        when (wordUiState) {
+            is WordUiState.Loading -> {}
+            is WordUiState.Success -> {
+                val word = wordUiState.word
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
 
+                    Text(
+                        text = word.word,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = word.translated,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(text = word.description, style = MaterialTheme.typography.bodyLarge)
+
+                }
+            }
+
+            is WordUiState.Error -> {}
         }
+
     }
 }
 

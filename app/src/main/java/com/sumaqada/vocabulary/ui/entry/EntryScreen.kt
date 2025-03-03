@@ -20,23 +20,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sumaqada.vocabulary.data.WordEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntryScreen() {
+fun EntryScreen(
+    entryUiState: EntryUiState = EntryUiState.Loading,
+    onWordValueChange: (WordEntity) -> Unit = {},
+    onCheckButtonClicked: () -> Unit = {},
+    onClearButtonClicked: () -> Unit = {}
+) {
+
+
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("New word") })
+            val title: String = if (entryUiState is EntryUiState.Entry) {
+                if (entryUiState.word.id == 0) "New Word" else "Update Word"
+            } else ""
+            TopAppBar(title = { Text(title) })
         },
         bottomBar = {
             BottomAppBar(
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onClearButtonClicked) {
                         Icon(imageVector = Icons.Outlined.Clear, contentDescription = null)
                     }
                 },
                 floatingActionButton = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onCheckButtonClicked) {
                         Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
                     }
                 }
@@ -45,39 +56,49 @@ fun EntryScreen() {
 
     ) { innerPadding ->
 
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        when (entryUiState) {
+            is EntryUiState.Loading -> {}
+            is EntryUiState.Entry -> {
+                val word = entryUiState.word
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
 
-            TextField(
-                value = "dsfa",
-                onValueChange = {},
-                singleLine = true,
-                maxLines = 1,
-                label = { Text("Word") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = "",
-                onValueChange = {},
-                singleLine = true,
-                maxLines = 1,
-                label = { Text("Translated") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = "",
-                onValueChange = {},
-                singleLine = false,
-                maxLines = 5,
-                minLines = 3,
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth()
-            )
+                    TextField(
+                        value = word.word,
+                        onValueChange = { onWordValueChange(word.copy(word = it))},
+                        singleLine = true,
+                        maxLines = 1,
+                        label = { Text("Word") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    TextField(
+                        value = word.translated,
+                        onValueChange = { onWordValueChange(word.copy(translated = it)) },
+                        singleLine = true,
+                        maxLines = 1,
+                        label = { Text("Translated") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    TextField(
+                        value = word.description,
+                        onValueChange = { onWordValueChange(word.copy(description = it)) },
+                        singleLine = false,
+                        maxLines = 5,
+                        minLines = 3,
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            is EntryUiState.Success -> {}
+            is EntryUiState.Error -> {}
         }
+
+
 
 
     }
