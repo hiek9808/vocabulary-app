@@ -2,6 +2,7 @@ package com.sumaqada.vocabulary.local
 
 import com.sumaqada.vocabulary.data.WordDao
 import com.sumaqada.vocabulary.data.WordEntity
+import com.sumaqada.vocabulary.ui.home.WordHomeUI
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -56,5 +57,13 @@ class WordLocalSourceImpl(
         withContext(ioDispatcher) {
             wordDao.deleteTable()
         }
+    }
+
+    override fun getAllNoSynchronized(): Flow<List<WordEntity>> {
+        return  wordDao.getAllNoSynchronized()
+    }
+
+    override fun getAllWordHomeUI(): Flow<List<WordHomeUI>> {
+        return wordDao.getAllWordHomeUI()
     }
 }

@@ -44,7 +44,7 @@ class WordViewModel(
         val factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as VocabularyApplication)
-                val wordRepository = application.container.getWordRepository(application.applicationContext)
+                val wordRepository = application.container.wordRepository
                 WordViewModel(wordRepository, createSavedStateHandle())
             }
         }

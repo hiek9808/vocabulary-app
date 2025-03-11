@@ -1,5 +1,6 @@
 package com.sumaqada.vocabulary.local
 
+import com.sumaqada.vocabulary.ui.home.WordHomeUI
 import kotlinx.coroutines.flow.Flow
 
 interface WordLocalSource<T> {
@@ -13,4 +14,6 @@ interface WordLocalSource<T> {
     suspend fun delete(word: T)
     suspend fun deleteAll(vararg words: T)
     suspend fun deleteTable()
+    fun getAllNoSynchronized(): Flow<List<T>>
+    fun getAllWordHomeUI(): Flow<List<WordHomeUI>>
 }

@@ -56,7 +56,7 @@ class RemoveViewModel(
         val factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application =(this[APPLICATION_KEY] as VocabularyApplication)
-                val wordRepository = application.container.getWordRepository(application.applicationContext)
+                val wordRepository = application.container.wordRepository
                 RemoveViewModel(wordRepository, createSavedStateHandle())
             }
         }

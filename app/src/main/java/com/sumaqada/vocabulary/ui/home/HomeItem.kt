@@ -1,12 +1,17 @@
 package com.sumaqada.vocabulary.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.CardDefaults
@@ -23,59 +28,86 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sumaqada.vocabulary.data.WordEntity
 import com.sumaqada.vocabulary.ui.theme.VocabularyTheme
 
 @Composable
 fun HomeItem(
     modifier: Modifier = Modifier,
-    word: WordEntity = WordEntity(),
+    word: WordHomeUI,
     onClick: (Int) -> Unit = {}
 ) {
 
     var showTranslated by remember { mutableStateOf(false) }
 
+
     OutlinedCard(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick(word.id) },
         border = BorderStroke(0.dp, Color.Transparent),
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = 8.dp
         ),
-        shape = RectangleShape
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        shape = RoundedCornerShape(2.dp, 16.dp, 16.dp, 16.dp)
     ) {
 
         Column(
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .padding(start = 16.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(word.word, modifier = Modifier.weight(1f).padding(8.dp))
+                Text(
+                    word.word.capitalize(Locale.current),
+                    modifier = Modifier
+                        .weight(1f),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
                 IconButton(onClick = { showTranslated = !showTranslated }) {
-                    Icon(imageVector = Icons.Rounded.KeyboardArrowDown, contentDescription = null)
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = null
+                    )
                 }
 
 
             }
             AnimatedVisibility(showTranslated) {
-                Text(word.translated, modifier = Modifier.padding(8.dp))
+                Text(
+                    word.translated,
+                    modifier = Modifier.padding(end = 16.dp),
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
 
         }
 
+
     }
+
+
 }
 
-@Preview
+@Preview(backgroundColor = 0xFFFFFFFF, showBackground = true)
 @Composable
 private fun HomeItemPreview() {
     VocabularyTheme {
-        HomeItem()
+        HomeItem(
+            word = WordHomeUI(0, "Word", "Palabra")
+        )
     }
 }

@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import com.sumaqada.vocabulary.ui.home.WordHomeUI
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,7 +20,7 @@ interface WordDao {
     @Query("SELECT * FROM Word WHERE id = :id")
     fun getById(id: Int): Flow<WordEntity>
 
-    @Query("SELECT * FROM Word")
+    @Query("SELECT * FROM Word WHERE isAvailable ORDER BY createAt DESC")
     fun getByAll(): Flow<List<WordEntity>>
 
     @Update
@@ -37,6 +38,10 @@ interface WordDao {
     @Query("DELETE FROM Word")
     suspend fun deleteTable()
 
+    @Query("SELECT * FROM Word WHERE NOT synchronized")
+    fun getAllNoSynchronized(): Flow<List<WordEntity>>
 
+    @Query("SELECT id, word, translated FROM Word WHERE isAvailable ORDER BY createAt DESC")
+    fun getAllWordHomeUI(): Flow<List<WordHomeUI>>
 
 }

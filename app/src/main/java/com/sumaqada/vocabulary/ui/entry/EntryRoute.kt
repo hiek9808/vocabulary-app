@@ -12,13 +12,12 @@ fun EntryRoute(
 ) {
 
     val entryUiState by viewModel.entryUiState.collectAsStateWithLifecycle()
-    val entryUiState2 by viewModel.entryUiState2
 
     EntryScreen(
         entryUiState = entryUiState,
         onWordValueChange = viewModel::onWordValueChange,
         onCheckButtonClicked = {
-            viewModel.entryWord {
+            viewModel.entryWord(it) {
                 goToUp()
             }
         },
