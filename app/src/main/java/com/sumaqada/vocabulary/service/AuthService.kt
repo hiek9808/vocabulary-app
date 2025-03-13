@@ -1,13 +1,14 @@
 package com.sumaqada.vocabulary.service
 
-import android.service.autofill.UserData
-import kotlinx.coroutines.flow.Flow
+import android.content.Context
+import com.sumaqada.vocabulary.repository.UserData
+
 
 interface AuthService {
 
-    suspend fun singIn()
+    suspend fun singIn(context: Context): UserData?
 
     suspend fun singOut()
 
-    fun getSignedInUser(): Flow<UserData?>
+    suspend fun getUserData(): UserData?
 }

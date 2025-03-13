@@ -2,6 +2,7 @@ package com.sumaqada.vocabulary.ui.home
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -17,6 +18,7 @@ fun HomeRoute(
     val userData by homeViewModel.userData.collectAsStateWithLifecycle()
     val syncStatus by homeViewModel.synStatus.collectAsStateWithLifecycle()
 
+    val context = LocalContext.current
 
     HomeScreen(
         homeUiState = homeUiState,
@@ -24,7 +26,8 @@ fun HomeRoute(
         syncStatus = syncStatus,
         onHomeItemClicked = goToWordRoute,
         onFloatingActionButtonClicked = goToEntryRoute,
-        onSyncButtonClicked = {}
+        onSyncButtonClicked = {homeViewModel.signIn(context)},
+        onLogOutButtonClicked = homeViewModel::signOut
     )
 
 }

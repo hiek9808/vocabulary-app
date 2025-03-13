@@ -1,7 +1,6 @@
 package com.sumaqada.vocabulary.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +15,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -30,17 +31,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.sumaqada.vocabulary.R
+import com.sumaqada.vocabulary.repository.UserData
 import com.sumaqada.vocabulary.ui.theme.VocabularyTheme
 import kotlinx.coroutines.launch
 
@@ -48,11 +52,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     homeUiState: HomeUiState,
-    userData: String?,
+    userData: UserData?,
     syncStatus: SyncStatus,
     onHomeItemClicked: (Int) -> Unit = {},
     onFloatingActionButtonClicked: () -> Unit = {},
-    onSyncButtonClicked: () -> Unit = {}
+    onSyncButtonClicked: () -> Unit = {},
+    onLogOutButtonClicked: () -> Unit = {}
 ) {
 
     val lazyState = rememberLazyListState()
@@ -69,6 +74,9 @@ fun HomeScreen(
         SyncStatus.SYNCHRONIZED -> R.drawable.round_cloud_done_24
         SyncStatus.ERROR -> R.drawable.round_sync_problem_24
     }
+
+    var showMenuUser by remember { mutableStateOf(false) }
+
 
     Scaffold(
         modifier = Modifier
@@ -91,7 +99,9 @@ fun HomeScreen(
                 actions = {
                     IconButton(onClick = {
                         if (userData == null) {
-                            onSyncButtonClicked()
+                            coroutineScope.launch {
+                                onSyncButtonClicked()
+                            }
                         }
                     }) {
                         Icon(
@@ -102,12 +112,22 @@ fun HomeScreen(
                     userData?.let {
                         Card(
                             modifier = Modifier.size(48.dp),
-                            shape = CircleShape
+                            shape = CircleShape,
+                            onClick = { showMenuUser = !showMenuUser}
                         ) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_launcher_background),
-                                contentDescription = null
+                            AsyncImage(
+                                modifier = Modifier.size(48.dp),
+                                model = it.profilePictureUrl,
+                                contentDescription = null,
                             )
+
+                        }
+                        DropdownMenu(
+                            expanded = showMenuUser,
+                            onDismissRequest = {showMenuUser = !showMenuUser}
+                        ) {
+                            DropdownMenuItem(text = { Text(it.username ?: "no user name") }, enabled = false, onClick = {})
+                            DropdownMenuItem(text = { Text("Logout") }, enabled = true, onClick = onLogOutButtonClicked)
                         }
                     }
 

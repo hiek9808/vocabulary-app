@@ -2,8 +2,10 @@ package com.sumaqada.vocabulary
 
 import android.content.Context
 import androidx.room.Room
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.firestore
 import com.sumaqada.vocabulary.data.VocabularyDatabase
-import com.sumaqada.vocabulary.data.WordDao
 import com.sumaqada.vocabulary.data.WordEntity
 import com.sumaqada.vocabulary.local.WordLocalSource
 import com.sumaqada.vocabulary.local.WordLocalSourceImpl
@@ -17,12 +19,12 @@ import com.sumaqada.vocabulary.repository.WordRepository
 import com.sumaqada.vocabulary.repository.WordRepositoryImpl
 import com.sumaqada.vocabulary.service.AuthGoogleServiceImpl
 import com.sumaqada.vocabulary.service.AuthService
-import com.sumaqada.vocabulary.service.WordFirestoreService
+import com.sumaqada.vocabulary.service.WordService
 import com.sumaqada.vocabulary.service.WordFirestoreServiceImpl
 import kotlinx.coroutines.Dispatchers
 
 interface AppContainer {
-    val wordFirestoreService: WordFirestoreService
+    val wordService: WordService
 
     val wordLocalSource: WordLocalSource<WordEntity>
     val wordRemoteSource: WordRemoteSource
@@ -57,24 +59,25 @@ class DefaultAppContainer(
         }
     }
 
+    private val authFirebase = Firebase.auth
+
+    private val firestore = Firebase.firestore
+
     private val ioDispatcher = Dispatchers.IO
 
-    override val wordFirestoreService: WordFirestoreService =
-        WordFirestoreServiceImpl("change", "change")
+    override val wordService: WordService = WordFirestoreServiceImpl(firestore)
 
     override val wordLocalSource: WordLocalSource<WordEntity> =
         WordLocalSourceImpl(getVocabularyDb(context).wordDao(), ioDispatcher)
 
-    override val wordRemoteSource: WordRemoteSource = WordRemoteSourceImpl(wordFirestoreService)
+    override val wordRemoteSource: WordRemoteSource = WordRemoteSourceImpl(wordService, ioDispatcher)
+
+    override val authService: AuthService = AuthGoogleServiceImpl(context, authFirebase)
+
+    override val authRemoteSource: AuthRemoteSource = AuthRemoteSourceImpl()
+
+    override val authRepository: AuthRepository = AuthRepositoryImpl(authService)
 
     override val wordRepository: WordRepository =
-        WordRepositoryImpl(wordLocalSource, wordRemoteSource)
-
-    override val authService: AuthService = AuthGoogleServiceImpl()
-
-    override val authRemoteSource: AuthRemoteSource
-        get() = AuthRemoteSourceImpl()
-
-    override val authRepository: AuthRepository
-        get() = AuthRepositoryImpl(authRemoteSource)
+        WordRepositoryImpl(wordLocalSource, wordRemoteSource, authRepository)
 }

@@ -1,20 +1,24 @@
 package com.sumaqada.vocabulary.repository
 
+
 import com.sumaqada.vocabulary.data.WordEntity
 import com.sumaqada.vocabulary.local.WordLocalSource
 import com.sumaqada.vocabulary.remote.WordRemoteSource
 import com.sumaqada.vocabulary.service.WordModel
 import com.sumaqada.vocabulary.ui.home.WordHomeUI
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 
+private const val TAG = "WordRepositoryImpl"
+
 class WordRepositoryImpl(
     private val wordLocalSource: WordLocalSource<WordEntity>,
-    private val wordRemoteSource: WordRemoteSource
+    private val wordRemoteSource: WordRemoteSource,
+    private val authRepository: AuthRepository
 ) : WordRepository {
+
+    private val userData = authRepository.userData
 
     override suspend fun insertWord(wordEntity: WordEntity) {
         wordLocalSource.save(wordEntity)
@@ -29,7 +33,7 @@ class WordRepositoryImpl(
     }
 
     override suspend fun updateWord(word: WordEntity) {
-        wordLocalSource.updateAll(word)
+        wordLocalSource.updateAll(word.copy(synchronized = false))
     }
 
 
@@ -43,15 +47,22 @@ class WordRepositoryImpl(
 
     override suspend fun syncWordFromLocalToRemote(words: List<WordEntity>) {
 
-        words.filter { it.uid == null && it.userId == null }.forEach { word ->
-            val remoteWordSynchronized = wordRemoteSource.insert(word.toWordModel())
-            wordLocalSource.update(remoteWordSynchronized.toWordEntity().copy(id = word.id))
-        }
+        userData.first()?.userId?.let { userId ->
+            words.filter { it.uid == null && it.userId == null }.forEach { word ->
+                val remoteWordSynchronized = wordRemoteSource.insert(
+                    word.toWordModel().copy(userId = userId)
+                )
+                wordLocalSource.update(remoteWordSynchronized.toWordEntity().copy(id = word.id))
+            }
 
-        words.filter { it.uid != null && it.userId != null }.forEach { word ->
-            wordRemoteSource.update(word.toWordModel())
-            wordLocalSource.update(word.copy(synchronized = true))
-        }
+            words.filter { it.uid != null && it.userId != null }.forEach { word ->
+                wordRemoteSource.update(word.toWordModel().copy(userId = userId))
+                wordLocalSource.update(word.copy(synchronized = true))
+            }
+        } ?: throw NoUserFoundException()
+
+
+
     }
 
     override suspend fun syncWordFromLocalToRemote() {
@@ -60,13 +71,15 @@ class WordRepositoryImpl(
     }
 
     override suspend fun syncWordFromRemoteToLocal() {
+        userData.first()?.userId?.let { userId ->
+            val allRemoteWordsSynchronized = wordRemoteSource.getAll(userId)
+                .filterNotNull()
+                .first()
+            wordLocalSource.deleteTable()
+            wordLocalSource.saveAll(*allRemoteWordsSynchronized.map { it.toWordEntity() }
+                .toTypedArray())
+        } ?: throw NoUserFoundException()
 
-        val allRemoteWordsSynchronized = wordRemoteSource.getAll()
-            .filterNotNull()
-            .first()
-
-        wordLocalSource.deleteTable()
-        wordLocalSource.saveAll(*allRemoteWordsSynchronized.map { it.toWordEntity() }.toTypedArray())
     }
 
     override fun getAllWordHomeUI(): Flow<List<WordHomeUI>> {
@@ -95,3 +108,7 @@ fun WordModel.toWordEntity(): WordEntity = WordEntity(
     synchronized = true,
     userId = this.userId
 )
+
+data class NoUserFoundException(
+    val msg: String = "No user found"
+) : Exception(msg)

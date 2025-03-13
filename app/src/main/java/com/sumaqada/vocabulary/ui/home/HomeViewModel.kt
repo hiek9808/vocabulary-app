@@ -1,6 +1,8 @@
 package com.sumaqada.vocabulary.ui.home
 
+import android.content.Context
 import android.util.Log
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -10,11 +12,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.sumaqada.vocabulary.VocabularyApplication
 import com.sumaqada.vocabulary.repository.AuthRepository
 import com.sumaqada.vocabulary.repository.WordRepository
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -51,7 +53,7 @@ class HomeViewModel(
             null
         )
 
-    private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.NO_SYNC)
+    private val _syncStatus = MutableStateFlow(SyncStatus.NO_SYNC)
     val synStatus: StateFlow<SyncStatus>
         get() = _syncStatus
 
@@ -64,33 +66,75 @@ class HomeViewModel(
             HomeUiState.Loading
         )
 
-    private val _wordsNoSync = wordRepository.getAllNoSynchronized()
+    private val _wordsNoSync =
+        userData.combine(wordRepository.getAllNoSynchronized()) { user, word ->
+            if (user != null) {
+                word
+            } else {
+                emptyList()
+            }
+        }
 
     init {
 
-        //sync when remote is implemented
+        viewModelScope.launch {
+            userData.collect {
+                Log.i(TAG, "userdata: $it")
+                if (it == null) {
+                    try {
+                        authRepository.loadUserData()
+                        _syncStatus.emit(SyncStatus.SYNCHRONIZED)
+                    } catch (e: Exception) {
+                        _syncStatus.emit(SyncStatus.NO_SYNC)
+                    }
+                }
+            }
+        }
+
         syncWords()
 
     }
 
     private fun syncWords() {
         viewModelScope.launch {
-            _wordsNoSync.collect {
-                try {
-                    Log.d(TAG, "syncWords: ${it.size}")
-                    _syncStatus.emit(SyncStatus.SYNCHRONIZING)
-                    val sync = async {
-                        // sync when remote is implemented
-                        //wordRepository.syncWordFromLocalToRemote(it)
-                    }
-                    delay(1000L)
-                    sync.await()
-                    _syncStatus.emit(SyncStatus.SYNCHRONIZED)
-                } catch (e: Exception) {
-                    _syncStatus.emit(SyncStatus.ERROR)
-                }
+            try {
 
+                _wordsNoSync.collect { words ->
+                    viewModelScope.launch {
+                        if (_syncStatus.value != SyncStatus.SYNCHRONIZING && words.isNotEmpty()) {
+                            _syncStatus.emit(SyncStatus.SYNCHRONIZING)
+
+                            wordRepository.syncWordFromLocalToRemote(words)
+                            delay(1000L)
+                            _syncStatus.emit(SyncStatus.SYNCHRONIZED)
+                        }
+                    }
+
+
+
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _syncStatus.emit(SyncStatus.ERROR)
             }
+        }
+    }
+
+    fun signIn(context: Context) {
+        viewModelScope.launch {
+            try {
+                authRepository.singInWithGoogle(context)
+                wordRepository.syncWordFromLocalToRemote()
+                wordRepository.syncWordFromRemoteToLocal()
+            } catch (e: GetCredentialException) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun signOut() {
+        viewModelScope.launch {
+            authRepository.signOut()
         }
     }
 

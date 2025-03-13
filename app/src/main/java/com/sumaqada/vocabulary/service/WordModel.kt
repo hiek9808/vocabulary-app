@@ -1,8 +1,12 @@
 package com.sumaqada.vocabulary.service
 
+import com.google.firebase.firestore.DocumentId
 import java.util.Date
 
+sealed class Model
+
 data class WordModel(
+    @DocumentId
     val id: String = "",
     val word: String = "",
     val translated: String = "",
@@ -10,4 +14,4 @@ data class WordModel(
     val isAvailable: Boolean = true,
     val createdAt: Date = Date(),
     val userId: String = ""
-)
+) : Model()
