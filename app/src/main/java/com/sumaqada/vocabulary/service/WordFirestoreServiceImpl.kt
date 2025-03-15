@@ -9,7 +9,7 @@ class WordFirestoreServiceImpl(
     override val pathCollection: String = "word",
 ) : WordService, CrudFirestoreImpl<WordModel>(firestore, pathCollection) {
 
-    override fun getAll(userId: String): Flow<List<WordModel>> = getAllModel(userId)
+    override fun getAll(userId: String): Flow<List<WordModel>> = getAllModel<WordModel>(userId)
 
-    override suspend fun getById(wordId: String): WordModel? = getModelById(wordId)
+    override suspend fun getById(wordId: String): WordModel? = getModelById<WordModel>(wordId)
 }

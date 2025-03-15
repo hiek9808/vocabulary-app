@@ -1,5 +1,8 @@
 package com.sumaqada.vocabulary.navigation
 
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+
 
 interface VocabularyDestination {
 
@@ -16,17 +19,26 @@ object Word : VocabularyDestination {
         get() = "word/{$wordId}"
     const val wordId: String = "wordId"
 
-    val routeArgs: (wordId: Int) -> String = { wordId ->  "word/$wordId"}
+    val routeWithArgs: (wordId: Int) -> String = { wordId ->  "word/$wordId"}
+
+    val args = listOf(
+        navArgument(name = wordId) { type = NavType.IntType; nullable = false }
+    )
 }
 
 object Entry : VocabularyDestination {
     override val route: String
-        get() = "entry/?$argName={$argName}"
+        get() = "entry/{$wordIdArgName}"
 
-    val argName: String = "wordId"
+    val wordIdArgName: String = "wordId"
 
-    val routeWithArgs: (Int) -> String = { wordId: Int -> "entry/?$argName=$wordId" }
-    val routeWithoutArgs = "entry"
+    val routeWithArgs: (Int) -> String = { wordId: Int -> "entry/$wordId" }
+
+    val routeWithoutArgs = "entry/${0}"
+
+    val args = listOf(
+        navArgument(name = Entry.wordIdArgName) { type = NavType.IntType; defaultValue = 0 }
+    )
 }
 
 object Remove : VocabularyDestination {
@@ -34,4 +46,8 @@ object Remove : VocabularyDestination {
         get() = "remove/{$argName}"
     val argName = "wordId"
     val routeWithArgs: (Int) -> String = { wordId: Int -> "remove/$wordId"}
+
+    val args = listOf(
+    navArgument(name = Remove.argName) { type = NavType.IntType; nullable = false }
+    )
 }

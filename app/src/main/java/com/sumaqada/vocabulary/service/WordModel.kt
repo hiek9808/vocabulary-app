@@ -3,7 +3,7 @@ package com.sumaqada.vocabulary.service
 import com.google.firebase.firestore.DocumentId
 import java.util.Date
 
-sealed class Model
+sealed interface Model
 
 data class WordModel(
     @DocumentId
@@ -14,4 +14,4 @@ data class WordModel(
     val isAvailable: Boolean = true,
     val createdAt: Date = Date(),
     val userId: String = ""
-) : Model()
+) : Model

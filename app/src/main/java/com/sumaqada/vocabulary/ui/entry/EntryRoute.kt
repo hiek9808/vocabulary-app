@@ -8,7 +8,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun EntryRoute(
     viewModel: EntryViewModel = viewModel(factory = EntryViewModel.factory),
-    goToUp: () -> Unit
+    goToUp: () -> Unit,
 ) {
 
     val entryUiState by viewModel.entryUiState.collectAsStateWithLifecycle()

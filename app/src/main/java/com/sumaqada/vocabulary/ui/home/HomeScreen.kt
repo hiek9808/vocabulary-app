@@ -3,6 +3,7 @@ package com.sumaqada.vocabulary.ui.home
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,44 +12,36 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.sumaqada.vocabulary.R
 import com.sumaqada.vocabulary.repository.UserData
 import com.sumaqada.vocabulary.ui.theme.VocabularyTheme
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     homeUiState: HomeUiState,
@@ -68,16 +61,6 @@ fun HomeScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    val painter = when (syncStatus) {
-        SyncStatus.NO_SYNC -> R.drawable.round_cloud_off_24
-        SyncStatus.SYNCHRONIZING -> R.drawable.round_cloud_sync_24
-        SyncStatus.SYNCHRONIZED -> R.drawable.round_cloud_done_24
-        SyncStatus.ERROR -> R.drawable.round_sync_problem_24
-    }
-
-    var showMenuUser by remember { mutableStateOf(false) }
-
-
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -91,48 +74,12 @@ fun HomeScreen(
             ),
         containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                title = { Text("Vocabulary") },
-                actions = {
-                    IconButton(onClick = {
-                        if (userData == null) {
-                            coroutineScope.launch {
-                                onSyncButtonClicked()
-                            }
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(painter),
-                            contentDescription = null
-                        )
-                    }
-                    userData?.let {
-                        Card(
-                            modifier = Modifier.size(48.dp),
-                            shape = CircleShape,
-                            onClick = { showMenuUser = !showMenuUser}
-                        ) {
-                            AsyncImage(
-                                modifier = Modifier.size(48.dp),
-                                model = it.profilePictureUrl,
-                                contentDescription = null,
-                            )
-
-                        }
-                        DropdownMenu(
-                            expanded = showMenuUser,
-                            onDismissRequest = {showMenuUser = !showMenuUser}
-                        ) {
-                            DropdownMenuItem(text = { Text(it.username ?: "no user name") }, enabled = false, onClick = {})
-                            DropdownMenuItem(text = { Text("Logout") }, enabled = true, onClick = onLogOutButtonClicked)
-                        }
-                    }
-
-
-                }
+            HomeTopAppBar(
+                modifier = Modifier,
+                userData = userData,
+                syncStatus = syncStatus,
+                onSyncButtonClicked = onSyncButtonClicked,
+                onLogOutButtonClicked = onLogOutButtonClicked
             )
         },
         floatingActionButton = {
@@ -152,7 +99,9 @@ fun HomeScreen(
                     }
                 }
 
-                FloatingActionButton(onClick = onFloatingActionButtonClicked) {
+                FloatingActionButton(
+                    onClick = onFloatingActionButtonClicked,
+                ) {
                     Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                 }
             }
@@ -161,7 +110,18 @@ fun HomeScreen(
     ) { innerPadding ->
 
         when (homeUiState) {
-            is HomeUiState.Loading -> {}
+            is HomeUiState.Loading -> {
+
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(85.dp))
+                }
+            }
+
             is HomeUiState.Success -> {
 
                 val words = homeUiState.words
@@ -177,25 +137,53 @@ fun HomeScreen(
                     }
                 }
 
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                        .background(Color.Transparent),
-                    state = lazyState,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                if (words.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .background(Color.DarkGray.copy(alpha = 0.8f))
+                            .fillMaxSize(),
+                    ) {
 
-                    items(words, key = { it.id }) { word ->
-                        HomeItem(
-                            word = word,
-                            onClick = onHomeItemClicked
+                        Text(
+                            "No words \n Add new word with the button +",
+                            modifier = Modifier.align(
+                                Alignment.Center
+                            ),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .size(150.dp)
+                                .clip(RoundedCornerShape(80, 0, 0, 0))
+                                .background(Color.White.copy(alpha = 0.2f))
+                                .align(Alignment.BottomEnd)
                         )
                     }
-                    item {
-                        Spacer(modifier = Modifier.size(84.dp))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
+                            .background(Color.Transparent),
+                        state = lazyState,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+
+                        items(words, key = { it.id }) { word ->
+                            HomeItem(
+                                word = word,
+                                onClick = onHomeItemClicked
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.size(84.dp))
+                        }
                     }
                 }
+
+
             }
 
             is HomeUiState.Error -> {}
@@ -208,16 +196,18 @@ fun HomeScreen(
 @Preview
 @Composable
 fun HomeScreenPreview() {
+    val success = HomeUiState.Success(
+        listOf(
+            WordHomeUI(1, "Word", "palabra"),
+            WordHomeUI(2, "Word", "palabra"),
+            WordHomeUI(3, "Word", "palabra"),
+            WordHomeUI(4, "Word", "palabra"),
+        )
+    )
+    val loading = HomeUiState.Loading
     VocabularyTheme {
         HomeScreen(
-            homeUiState = HomeUiState.Success(
-                listOf(
-                    WordHomeUI(1, "Word", "palabra"),
-                    WordHomeUI(2, "Word", "palabra"),
-                    WordHomeUI(3, "Word", "palabra"),
-                    WordHomeUI(4, "Word", "palabra"),
-                )
-            ),
+            homeUiState = success,
             userData = null,
             syncStatus = SyncStatus.SYNCHRONIZED
         )

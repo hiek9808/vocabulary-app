@@ -2,14 +2,10 @@ package com.sumaqada.vocabulary.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavArgs
-import androidx.navigation.NavArgument
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
-import androidx.navigation.navArgument
 import com.sumaqada.vocabulary.ui.entry.EntryRoute
 import com.sumaqada.vocabulary.ui.home.HomeRoute
 import com.sumaqada.vocabulary.ui.remove.RemoveRoute
@@ -30,57 +26,68 @@ fun VocabularyNavHost(
 
         composable(route = Home.route) {
             HomeRoute(
-                goToWordRoute = { wordId ->
-                    navController.navigate(route = Word.routeArgs(wordId))
-                },
-                goToEntryRoute = {
-                    navController.navigate(route = Entry.routeWithArgs(0))
-                }
+                goToWordRoute = navController::navigateToWordRoute,
+                goToEntryRoute = navController::navigateToEntryRoute
             )
         }
 
-        composable(
-            route = Entry.route,
-            arguments = listOf(
-                navArgument(name = Entry.argName) { type = NavType.IntType; defaultValue = 0 }
-            )
-        ) {
+        composable(route = Entry.route, arguments = Entry.args) {
             EntryRoute(
-                goToUp = { navController.navigateUp() }
+                goToUp = navController::navigateUp
             )
         }
 
-        composable(
-            route = Word.route,
-            arguments = listOf(
-                navArgument(name = Word.wordId) { type = NavType.IntType; nullable = false }
-            )
-        ) {
+        composable(route = Word.route, arguments = Word.args) {
             WordRoute(
-                goToEntryRoute = { worId ->
-                    if (worId == null) {
-                        navController.navigate(Entry.routeWithArgs(0))
-                    } else {
-                        navController.navigate(Entry.routeWithArgs(worId))
-                    }
-                },
-                goToRemoveRoute = { wordId ->
-                    navController.navigate(Remove.routeWithArgs(wordId))
-                }
+                goToEntryRoute = navController::navigateToEntryRoute,
+                goToRemoveRoute = navController::navigateToRemoveRoute,
+                goToUp = navController::navigateUp
             )
         }
 
-        dialog(
-            route = Remove.route,
-            arguments = listOf(
-                navArgument(name = Remove.argName) { type = NavType.IntType; nullable = false }
-            )
-        ) {
+        dialog(route = Remove.route, arguments = Remove.args) {
             RemoveRoute(
-                goToUp = { navController.navigateUp() },
-                goToHomeRoute = {navController.navigate(route = Home.route)}
+                goToUp = navController::navigateUp,
+                goToHomeRoute = navController::navigateToHomeRoute
             )
         }
     }
 
+}
+
+fun NavHostController.navigateToWordRoute(wordId: Int) {
+    this.navigate(route = Word.routeWithArgs(wordId)) {
+        launchSingleTop = true
+
+    }
+}
+
+fun NavHostController.navigateToEntryRoute(wordId: Int?) {
+    this.navigate(route = Entry.routeWithArgs(wordId ?: 0)) {
+        if (wordId == null) {
+            popUpTo(Word.route) {
+                inclusive = true
+            }
+        }
+        launchSingleTop = true
+    }
+}
+
+fun NavHostController.navigateToEntryRoute() {
+    this.navigateToEntryRoute(null)
+}
+
+fun NavHostController.navigateToRemoveRoute(wordId: Int) {
+    this.navigate(route = Remove.routeWithArgs(wordId)) {
+        launchSingleTop = true
+    }
+}
+
+fun NavHostController.navigateToHomeRoute() {
+    this.navigate(route = Home.route) {
+        popUpTo(route = Home.route) {
+            inclusive = true
+        }
+        launchSingleTop = true
+    }
 }

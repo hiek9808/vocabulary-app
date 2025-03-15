@@ -3,6 +3,7 @@ package com.sumaqada.vocabulary.service
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.dataObjects
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 
@@ -20,30 +21,30 @@ abstract class CrudFirestoreImpl<T: Model>(
             .add(t)
             .await()
             .id
-        return t.setId(wordId)
+        return t.saveId(wordId)
     }
 
-    inline fun <reified T : Model> getAllModel(userId: String): Flow<List<T>> {
+    inline fun <reified T> getAllModel(userId: String): Flow<List<T>> {
         return firestore
             .collection(pathCollection)
             .whereEqualTo("userId", userId)
             .whereEqualTo("available", true)
-            .dataObjects<T>()
+            .dataObjects()
     }
 
-    suspend inline fun <reified T : Model> getModelById(wordId: String): T? {
+    suspend inline fun <reified T> getModelById(wordId: String): T? {
         return firestore
             .collection(pathCollection)
             .document(wordId)
             .get()
             .await()
-            .toObject(T::class.java)
+            .toObject()
     }
 
     override suspend fun update(t: T) {
         firestore
             .collection(pathCollection)
-            .document(t.getId())
+            .document(t.customId())
             .set(t)
             .await()
     }
@@ -57,14 +58,14 @@ abstract class CrudFirestoreImpl<T: Model>(
     }
 }
 
-fun <T : Model> T.getId(): String {
+fun <T : Model> T.customId(): String {
     return when(this) {
         is WordModel -> this.id
         else -> throw Exception("No class accepted")
     }
 }
 
-fun <T : Model> T.setId(id: String): T {
+fun <T : Model> T.saveId(id: String): T {
     return when(this) {
         is WordModel -> this.copy(id = id) as T
         else -> throw Exception("No class accepted")

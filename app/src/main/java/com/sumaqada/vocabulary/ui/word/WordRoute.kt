@@ -8,7 +8,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun WordRoute(
     goToRemoveRoute: (Int) -> Unit,
-    goToEntryRoute: (Int?) -> Unit,
+    goToEntryRoute: (wordId: Int?) -> Unit,
+    goToUp: () -> Unit,
     viewModel: WordViewModel = viewModel(factory = WordViewModel.factory)
 ) {
 
@@ -18,6 +19,7 @@ fun WordRoute(
         wordUiState = wordUiState,
         onDeleteButtonClicked = goToRemoveRoute,
         onEditButtonClicked = goToEntryRoute,
-        onFloatingActionButtonClicked = { goToEntryRoute(null) }
+        onFloatingActionButtonClicked = { goToEntryRoute(null) },
+        onNavigationButtonClicked = goToUp
     )
 }

@@ -1,6 +1,7 @@
 package com.sumaqada.vocabulary.repository
 
 
+import android.util.Log
 import com.sumaqada.vocabulary.data.WordEntity
 import com.sumaqada.vocabulary.local.WordLocalSource
 import com.sumaqada.vocabulary.remote.WordRemoteSource
@@ -73,11 +74,13 @@ class WordRepositoryImpl(
     override suspend fun syncWordFromRemoteToLocal() {
         userData.first()?.userId?.let { userId ->
             val allRemoteWordsSynchronized = wordRemoteSource.getAll(userId)
-                .filterNotNull()
                 .first()
+            Log.i(TAG, "syncWordFromRemoteToLocal: allremotes: ${allRemoteWordsSynchronized.size}")
             wordLocalSource.deleteTable()
+            Log.i(TAG, "syncWordFromRemoteToLocal: delete local Database")
             wordLocalSource.saveAll(*allRemoteWordsSynchronized.map { it.toWordEntity() }
                 .toTypedArray())
+            Log.i(TAG, "syncWordFromRemoteToLocal: insert to local database done")
         } ?: throw NoUserFoundException()
 
     }

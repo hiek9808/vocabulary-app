@@ -1,8 +1,6 @@
 package com.sumaqada.vocabulary.ui.entry
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -37,11 +35,13 @@ sealed interface EntryUiState {
     data object Error : EntryUiState
 }
 
+private const val TAG = "EntryViewModel"
+
 class EntryViewModel(
     private val wordRepository: WordRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val wordId: Int = checkNotNull(savedStateHandle[Entry.argName])
+    private val wordId: Int = checkNotNull(savedStateHandle[Entry.wordIdArgName])
 
     private val _entryUiState: MutableStateFlow<EntryUiState> =
         MutableStateFlow(EntryUiState.Loading)
@@ -85,22 +85,23 @@ class EntryViewModel(
     }
 
     fun entryWord(word: WordEntity, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                _entryUiState.emit(EntryUiState.Success(word, true, true))
-                val end = if (word.id != 0) {
-                    async {  wordRepository.updateWord(word) }
-                } else {
-                    async {  wordRepository.insertWord(word) }
+        if (_entryUiState.value is EntryUiState.Success) {
+            val uiState = _entryUiState.value as EntryUiState.Success
+            viewModelScope.launch {
+                try {
+                    _entryUiState.emit(uiState.copy(isSaving = true))
+                    val end = if (word.id != 0) {
+                        async { wordRepository.updateWord(word) }
+                    } else {
+                        async { wordRepository.insertWord(word) }
+                    }
+                    delay(1_000L)
+                    end.await()
+                    onSuccess()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    _entryUiState.emit(uiState.copy(isSaving = false, errorMsg = "Error"))
                 }
-                delay(1_000L)
-                end.await()
-                onSuccess()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _entryUiState.emit(EntryUiState.Success(word, true, false, "Error"))
-            } finally {
-                _entryUiState.emit(EntryUiState.Success(word, true, false))
             }
         }
 

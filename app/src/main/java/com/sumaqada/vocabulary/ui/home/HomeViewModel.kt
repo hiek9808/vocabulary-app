@@ -12,12 +12,12 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.sumaqada.vocabulary.VocabularyApplication
 import com.sumaqada.vocabulary.repository.AuthRepository
 import com.sumaqada.vocabulary.repository.WordRepository
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -30,7 +30,7 @@ sealed interface HomeUiState {
 }
 
 enum class SyncStatus {
-    NO_SYNC, SYNCHRONIZING, SYNCHRONIZED, ERROR
+    NO_SYNC, SYNCHRONIZING, SYNCHRONIZED, ERROR, FIRST_SYNC
 }
 
 data class WordHomeUI(
@@ -59,7 +59,13 @@ class HomeViewModel(
 
 
     val homeUiState: StateFlow<HomeUiState> = wordRepository.getAllWordHomeUI()
-        .map { HomeUiState.Success(it) }
+        .combine(_syncStatus) { words, sync ->
+            if (sync == SyncStatus.FIRST_SYNC) {
+                HomeUiState.Loading
+            } else {
+                HomeUiState.Success(words)
+            }
+        }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000L),
@@ -71,7 +77,7 @@ class HomeViewModel(
             if (user != null) {
                 word
             } else {
-                emptyList()
+                null
             }
         }
 
@@ -83,50 +89,73 @@ class HomeViewModel(
                 if (it == null) {
                     try {
                         authRepository.loadUserData()
-                        _syncStatus.emit(SyncStatus.SYNCHRONIZED)
                     } catch (e: Exception) {
-                        _syncStatus.emit(SyncStatus.NO_SYNC)
+                        e.printStackTrace()
                     }
                 }
             }
         }
 
-        syncWords()
-
-    }
-
-    private fun syncWords() {
         viewModelScope.launch {
             try {
-
-                _wordsNoSync.collect { words ->
-                    viewModelScope.launch {
-                        if (_syncStatus.value != SyncStatus.SYNCHRONIZING && words.isNotEmpty()) {
-                            _syncStatus.emit(SyncStatus.SYNCHRONIZING)
-
-                            wordRepository.syncWordFromLocalToRemote(words)
-                            delay(1000L)
-                            _syncStatus.emit(SyncStatus.SYNCHRONIZED)
-                        }
-                    }
-
-
-
-                }
+                syncWords()
             } catch (e: Exception) {
                 e.printStackTrace()
                 _syncStatus.emit(SyncStatus.ERROR)
+                delay(1000L)
+                _syncStatus.emit(SyncStatus.NO_SYNC)
             }
+        }
+
+
+    }
+
+    private suspend fun syncWords() {
+        _wordsNoSync.collect { words ->
+            viewModelScope.launch {
+                when {
+                    words == null -> {
+                        _syncStatus.emit(SyncStatus.NO_SYNC)
+                    }
+
+                    _syncStatus.value != SyncStatus.SYNCHRONIZING && _syncStatus.value != SyncStatus.FIRST_SYNC -> {
+                        Log.i(TAG, "syncWords sync status: ${_syncStatus.value}")
+                        _syncStatus.emit(SyncStatus.SYNCHRONIZING)
+                        Log.i(TAG, "syncWords: ${words.size}")
+                        val synchronizing = async {
+                            try {
+                                wordRepository.syncWordFromLocalToRemote(words)
+                            } catch (e: Exception) {
+                                _syncStatus.emit(SyncStatus.NO_SYNC)
+                            }
+                        }
+                        delay(1000L)
+                        synchronizing.await()
+                        _syncStatus.emit(SyncStatus.SYNCHRONIZED)
+                    }
+
+
+                }
+
+            }
+
         }
     }
 
     fun signIn(context: Context) {
         viewModelScope.launch {
             try {
+                _syncStatus.emit(SyncStatus.SYNCHRONIZING)
                 authRepository.singInWithGoogle(context)
+                Log.i(TAG, "signIn: done")
+                _syncStatus.emit(SyncStatus.FIRST_SYNC)
                 wordRepository.syncWordFromLocalToRemote()
+                Log.i(TAG, "syncFromLocalToRemote: done")
                 wordRepository.syncWordFromRemoteToLocal()
+                Log.i(TAG, "syncFromRemoteToLocal: done")
+                _syncStatus.emit(SyncStatus.SYNCHRONIZED)
             } catch (e: GetCredentialException) {
+                _syncStatus.emit(SyncStatus.ERROR)
                 e.printStackTrace()
             }
         }
@@ -135,6 +164,7 @@ class HomeViewModel(
     fun signOut() {
         viewModelScope.launch {
             authRepository.signOut()
+            _syncStatus.emit(SyncStatus.NO_SYNC)
         }
     }
 
