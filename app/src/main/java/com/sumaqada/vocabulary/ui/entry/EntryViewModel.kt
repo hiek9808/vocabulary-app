@@ -1,6 +1,9 @@
 package com.sumaqada.vocabulary.ui.entry
 
+import android.app.Application
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -9,6 +12,7 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.sumaqada.vocabulary.R
 import com.sumaqada.vocabulary.VocabularyApplication
 import com.sumaqada.vocabulary.data.WordEntity
 import com.sumaqada.vocabulary.navigation.Entry
@@ -39,8 +43,9 @@ private const val TAG = "EntryViewModel"
 
 class EntryViewModel(
     private val wordRepository: WordRepository,
-    private val savedStateHandle: SavedStateHandle
-) : ViewModel() {
+    private val savedStateHandle: SavedStateHandle,
+    private val application: Application
+) : AndroidViewModel(application) {
     private val wordId: Int = checkNotNull(savedStateHandle[Entry.wordIdArgName])
 
     private val _entryUiState: MutableStateFlow<EntryUiState> =
@@ -100,7 +105,12 @@ class EntryViewModel(
                     onSuccess()
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    _entryUiState.emit(uiState.copy(isSaving = false, errorMsg = "Error"))
+                    _entryUiState.emit(
+                        uiState.copy(
+                            isSaving = false,
+                            errorMsg = application.getString(R.string.error_msg)
+                        )
+                    )
                 }
             }
         }
@@ -117,7 +127,7 @@ class EntryViewModel(
             initializer {
                 val application = (this[APPLICATION_KEY] as VocabularyApplication)
                 val wordRepository = application.container.wordRepository
-                EntryViewModel(wordRepository, createSavedStateHandle())
+                EntryViewModel(wordRepository, createSavedStateHandle(), application)
             }
         }
     }

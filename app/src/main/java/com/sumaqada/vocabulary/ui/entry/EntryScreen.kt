@@ -19,15 +19,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sumaqada.vocabulary.R
 import com.sumaqada.vocabulary.data.WordEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +55,9 @@ fun EntryScreen(
         containerColor = Color.Transparent,
         topBar = {
             val title: String = if (entryUiState is EntryUiState.Success) {
-                if (entryUiState.word.id == 0) "New Word" else "Update Word"
+                if (entryUiState.word.id == 0) stringResource(R.string.new_word) else stringResource(
+                    R.string.update_word
+                )
             } else ""
             TopAppBar(
                 title = { Text(title) }, colors = TopAppBarDefaults.topAppBarColors(
@@ -109,7 +112,7 @@ fun EntryScreen(
                         onValueChange = { onWordValueChange(word.copy(word = it)) },
                         singleLine = true,
                         maxLines = 1,
-                        label = { Text("Word") },
+                        label = { Text(stringResource(R.string.word_hint)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
                     )
@@ -118,7 +121,7 @@ fun EntryScreen(
                         onValueChange = { onWordValueChange(word.copy(translated = it)) },
                         singleLine = true,
                         maxLines = 1,
-                        label = { Text("Translated") },
+                        label = { Text(stringResource(R.string.translated_hint)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
                     )
@@ -128,7 +131,7 @@ fun EntryScreen(
                         singleLine = false,
                         maxLines = 5,
                         minLines = 3,
-                        label = { Text("Description") },
+                        label = { Text(stringResource(R.string.description_hint)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
                     )

@@ -8,7 +8,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.sumaqada.vocabulary.R
 import com.sumaqada.vocabulary.data.WordEntity
 import com.sumaqada.vocabulary.ui.theme.VocabularyTheme
 
@@ -30,19 +32,19 @@ fun RemoveScreen(
                 },
                 confirmButton = {
                     TextButton(onClick = onConfirmButtonClicked) {
-                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.delete_text_button), color = MaterialTheme.colorScheme.error)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = onDismissRequest) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel_text_button))
                     }
                 },
                 title = {
-                    Text("Remove word")
+                    Text(stringResource(R.string.title_remove_word))
                 },
                 text = {
-                    Text("Do you want delete \"${word.word}\" word?")
+                    Text(stringResource(R.string.question_delete_word, word.word))
                 }
             )
         }

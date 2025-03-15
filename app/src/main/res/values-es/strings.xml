@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vocabulary</string>
+    <string name="new_word">Nueva palabra</string>
+    <string name="update_word">Actualizar palabra</string>
+    <string name="word_hint">Palabra</string>
+    <string name="translated_hint">Traducido</string>
+    <string name="description_hint">Descripción</string>
+    <string name="error_msg">Error desconocido</string>
+    <string name="no_words_msg">Sin palabras \n Agrega nueva palabra con el boton +</string>
+    <string name="no_user_name">sin nombre de usuario</string>
+    <string name="delete_text_button">Borrar</string>
+    <string name="cancel_text_button">Cancelar</string>
+    <string name="title_remove_word">Borrar palabra</string>
+    <string name="question_delete_word">¿Quieres borrar la palabra \"%1$s\" ?</string>
+</resources>

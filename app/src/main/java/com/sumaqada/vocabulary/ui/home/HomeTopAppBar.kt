@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -92,7 +93,7 @@ fun HomeTopAppBar(
                     onDismissRequest = { showMenuUser = !showMenuUser }
                 ) {
                     DropdownMenuItem(
-                        text = { Text(it.username ?: "no user name") },
+                        text = { Text(it.username ?: stringResource(R.string.no_user_name)) },
                         enabled = false,
                         onClick = {})
                     DropdownMenuItem(

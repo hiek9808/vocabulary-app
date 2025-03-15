@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -145,7 +146,7 @@ fun HomeScreen(
                     ) {
 
                         Text(
-                            "No words \n Add new word with the button +",
+                            stringResource(R.string.no_words_msg),
                             modifier = Modifier.align(
                                 Alignment.Center
                             ),

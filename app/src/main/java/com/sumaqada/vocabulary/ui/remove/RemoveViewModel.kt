@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.sumaqada.vocabulary.VocabularyApplication
 import com.sumaqada.vocabulary.data.WordEntity
+import com.sumaqada.vocabulary.navigation.Remove
 import com.sumaqada.vocabulary.repository.WordRepository
 import com.sumaqada.vocabulary.ui.home.HomeViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,7 +31,7 @@ class RemoveViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val wordId: Int = checkNotNull(savedStateHandle["wordId"])
+    private val wordId: Int = checkNotNull(savedStateHandle[Remove.argName])
 
     val removeUiState = wordRepository.getWordById(wordId)
         .filterNotNull()

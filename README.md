@@ -1,53 +1,35 @@
-# [Project Name]
+# [Vocabulary App]
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Description
 
-[Provide a concise and clear description of your project. What problem does it solve? What are its key features? What is the purpose of this project?]
+[With this app you can save your word and their translations that you learning.]
 
 ## Features
 
-*   [List the main features of your project.]
-*   [Feature 2]
-*   [Feature 3]
-*   ...
+*   [Save local with Room]
+*   [Save cloud with Firebase - Firestore]
+*   [Authentication with google]
+*   [Architecture MVVM]
+*   [Use Jetpack Compose]
 
 ## Getting Started
 
-[Explain how to get started with your project. This might include:]
-
-### Prerequisites
-
-*   [List any software or tools that need to be installed before using your project.]
-*   [Example: Android Studio, Java JDK 17, etc.]
+[Download the apk or install it with the next steps:]
 
 ### Installation
 
-1.  [Step-by-step instructions on how to install or set up your project.]
-2.  [Example: Clone the repository, open in Android Studio, build the project.]
-3.  ...
-
-## Usage
-
-[Provide examples and instructions on how to use your project. Include code snippets or screenshots if necessary.]
-
-## Contributing
-
-[Explain how others can contribute to your project. This might include:]
-
-*   [How to report bugs.]
-*   [How to suggest new features.]
-*   [How to submit pull requests.]
+1.  [Clone this repository.]
+2.  [Change the package name for other one.]
+3.  [Create an app in Firebase and follow the instructions to link it.]
+4.  [Add Firestore and Authentication in Firebase.]
+5.  [Build the project.]
 
 ## License
 
-This project is licensed under the [License Name] - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the [Apache 2.0] - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Contact
 
-[Your Name] - [Your Email] - [Your Website/Portfolio (optional)]
-
-## Acknowledgments
-
-[Give credit to any resources, libraries, or individuals that helped you with this project.]
+[Kervin Herrera] - [kervin9808@gmail.com] - [www.sumaqada.com/portfolio]

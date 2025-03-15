@@ -1,6 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Vocabulary</string>
-    <string name="web_api_key" translatable="false">your api key here</string>
     <string name="new_word">New Word</string>
     <string name="update_word">Update Word</string>
     <string name="word_hint">Word</string>

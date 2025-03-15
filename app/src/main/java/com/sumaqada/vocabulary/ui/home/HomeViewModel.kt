@@ -85,7 +85,6 @@ class HomeViewModel(
 
         viewModelScope.launch {
             userData.collect {
-                Log.i(TAG, "userdata: $it")
                 if (it == null) {
                     try {
                         authRepository.loadUserData()
@@ -119,9 +118,7 @@ class HomeViewModel(
                     }
 
                     _syncStatus.value != SyncStatus.SYNCHRONIZING && _syncStatus.value != SyncStatus.FIRST_SYNC -> {
-                        Log.i(TAG, "syncWords sync status: ${_syncStatus.value}")
                         _syncStatus.emit(SyncStatus.SYNCHRONIZING)
-                        Log.i(TAG, "syncWords: ${words.size}")
                         val synchronizing = async {
                             try {
                                 wordRepository.syncWordFromLocalToRemote(words)
@@ -147,12 +144,12 @@ class HomeViewModel(
             try {
                 _syncStatus.emit(SyncStatus.SYNCHRONIZING)
                 authRepository.singInWithGoogle(context)
-                Log.i(TAG, "signIn: done")
+
                 _syncStatus.emit(SyncStatus.FIRST_SYNC)
+
                 wordRepository.syncWordFromLocalToRemote()
-                Log.i(TAG, "syncFromLocalToRemote: done")
                 wordRepository.syncWordFromRemoteToLocal()
-                Log.i(TAG, "syncFromRemoteToLocal: done")
+
                 _syncStatus.emit(SyncStatus.SYNCHRONIZED)
             } catch (e: GetCredentialException) {
                 _syncStatus.emit(SyncStatus.ERROR)
